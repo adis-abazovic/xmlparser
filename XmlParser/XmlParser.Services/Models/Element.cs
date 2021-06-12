@@ -14,6 +14,7 @@ namespace XmlParser.Services.Models
 
         public string Name { get; set; }
         public List<string> Values { get; set; }
+        public string ValuesJoined { get { return String.Join(' ', Values); } }
         public int Frequency { get; set; }
 
         public override string ToString()

@@ -10,6 +10,6 @@ namespace XmlParser.Services.Services
 {
     public interface IXmlService
     {
-        Task<Dictionary<string, Element>> Process(Stream xmlStream, List<string> filterElements);
+        Task Process(Stream xmlStream, List<string> filterElements);
     }
 }

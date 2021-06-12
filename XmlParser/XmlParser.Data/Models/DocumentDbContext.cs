@@ -22,12 +22,15 @@ namespace XmlParser.Data.Models
         {
         }
 
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<DbDocument>(entity =>
             {
                 entity.Property(e => e.ClientID)
                     .IsRequired();
+
+                entity.HasMany(e => e.Elements);
             });
 
             modelBuilder.Entity<DbElement>(entity =>
@@ -37,6 +40,8 @@ namespace XmlParser.Data.Models
 
                 entity.Property(e => e.Content)
                     .IsRequired();
+
+                entity.HasMany(w => w.WordDuplicates);
             });
 
             modelBuilder.Entity<DbWordDuplicate>(entity =>
