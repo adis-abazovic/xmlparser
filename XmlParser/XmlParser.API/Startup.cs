@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -11,6 +12,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using XmlParser.Data.Models;
+using XmlParser.Data.Repositories;
+using XmlParser.Services.Services;
 
 namespace XmlParser.API
 {
@@ -26,6 +30,13 @@ namespace XmlParser.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //services.AddDbContext<RepositoryPatternDemoContext>(options => options.UseSqlServer(Configuration["Database:ConnectionString"]));
+            services.AddDbContext<DocumentDbContext>(options => options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+
+            services.AddTransient(typeof(IRepository<>), typeof(Repository<>));
+            services.AddTransient<IDbDocumentRepository, DbDocumentRepository>();
+
+            services.AddTransient<IXmlService, XmlService>();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
