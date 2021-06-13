@@ -4,13 +4,13 @@ using XmlParser.Data.Models;
 
 namespace XmlParser.Data.Repositories
 {
-    public class DbDocumentRepository : Repository<DbDocument>, IDbDocumentRepository
+    public class DbDocumentRepository : Repository<DbXmlDocument>, IDbDocumentRepository
     {
         public DbDocumentRepository(DocumentDbContext documentDbContext) : base(documentDbContext)
         {
         }
 
-        public Task<DbDocument> GetDocumentByClientAsync(string clientId)
+        public Task<DbXmlDocument> GetDocumentByClientAsync(string clientId)
         {
             return GetAll().FirstOrDefaultAsync(x => x.ClientID == clientId);
         }

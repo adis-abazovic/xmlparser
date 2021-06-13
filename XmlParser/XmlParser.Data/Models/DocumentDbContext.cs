@@ -14,8 +14,8 @@ namespace XmlParser.Data.Models
         {
         }
 
-        public virtual DbSet<DbDocument> XmlDocuments { get; set; }
-        public virtual DbSet<DbElement> XmlElements { get; set; }
+        public virtual DbSet<DbXmlDocument> XmlDocuments { get; set; }
+        public virtual DbSet<DbXmlElement> XmlElements { get; set; }
         public virtual DbSet<DbWordDuplicate> WordDuplicates { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -25,7 +25,7 @@ namespace XmlParser.Data.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<DbDocument>(entity =>
+            modelBuilder.Entity<DbXmlDocument>(entity =>
             {
                 entity.Property(e => e.ClientID)
                     .IsRequired();
@@ -33,9 +33,9 @@ namespace XmlParser.Data.Models
                 entity.HasMany(e => e.Elements);
             });
 
-            modelBuilder.Entity<DbElement>(entity =>
+            modelBuilder.Entity<DbXmlElement>(entity =>
             {
-                entity.Property(e => e.Name)
+                entity.Property(e => e.Tag)
                     .IsRequired();
 
                 entity.Property(e => e.Content)
@@ -46,7 +46,7 @@ namespace XmlParser.Data.Models
 
             modelBuilder.Entity<DbWordDuplicate>(entity =>
             {
-                entity.Property(e => e.Text)
+                entity.Property(e => e.Word)
                     .IsRequired();
 
                 entity.Property(e => e.Frequency)

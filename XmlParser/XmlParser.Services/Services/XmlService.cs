@@ -19,41 +19,47 @@ namespace XmlParser.Services.Services
             _dbDocumentRepository = dbDocumentRepository;
         }
 
-        public async Task Process(Stream xmlStream, List<string> filterElements)
+        public async Task<List<Element>> Process(Stream xmlStream, string fileName, string clientId, List<string> filterElements)
         {
-            var newDbDocument = new DbDocument()
+            var newDbDocument = new DbXmlDocument()
             {
-                ClientID = "883242",
-                FileName = "file.xml",
-                Elements = new List<DbElement>()
+                ClientID = clientId,
+                FileName = fileName,
+                DateTimeProcessed = DateTime.Now,
+                Elements = new List<DbXmlElement>()
             };
 
             var parsedXml = await this.ParseXml(xmlStream, filterElements);
             foreach (var elem in parsedXml)
             {
-                var newDbElement = new DbElement()
+                var newDbElement = new DbXmlElement()
                 {
-                    Name = elem.Value.Name,
+                    Tag = elem.Value.Name,
                     Content = elem.Value.ValuesJoined,
                     WordDuplicates = new List<DbWordDuplicate>()
                 };
 
-                var wordDuplicates = FindWordDuplicates(String.Join(' ', elem.Value.Values));
+                //var wordDuplicates = elem.Value.FindWordDuplicates();
 
-                foreach (var wordPair in wordDuplicates)
+                foreach (var wordPair in elem.Value.WordDuplicates)
                 {
-                    newDbElement.WordDuplicates.Add(new DbWordDuplicate()
+                    if (wordPair.Frequency > 1)
                     {
-                        Text = wordPair.Key,
-                        Frequency = wordPair.Value
-                    });
+                        newDbElement.WordDuplicates.Add(new DbWordDuplicate()
+                        {
+                            Word = wordPair.Text,
+                            Frequency = wordPair.Frequency
+                        });
+                    }
+                    
                 };
 
                 newDbDocument.Elements.Add(newDbElement);
             }
 
-            // TODO: Save result into DB
             await _dbDocumentRepository.AddAsync(newDbDocument);
+
+            return parsedXml.Values.ToList();
         }
 
         private async Task<Dictionary<string, Element>> ParseXml(Stream xmlStream, List<string> filterElements)
@@ -103,25 +109,25 @@ namespace XmlParser.Services.Services
             return elemValuePairs;
         }
 
-        private Dictionary<string, int> FindWordDuplicates(string content)
-        {
-            var wordFreqPairs = new Dictionary<string, int>();
+        //private Dictionary<string, int> FindWordDuplicates(string content)
+        //{
+        //    var wordFreqPairs = new Dictionary<string, int>();
 
-            var splitted = content.Split(new char[] { ' ', '\n' }, StringSplitOptions.TrimEntries);
-            foreach (var word in splitted)
-            {
-                var cleanWord = word.Replace(",", String.Empty).Replace(".", String.Empty).Replace("\n", String.Empty);
-                if (!wordFreqPairs.ContainsKey(cleanWord))
-                {
-                    wordFreqPairs.Add(cleanWord, 1);
-                }
-                else
-                {
-                    wordFreqPairs[cleanWord]++;
-                }
-            }
+        //    var splitted = content.Split(new char[] { ' ', '\n' }, StringSplitOptions.TrimEntries);
+        //    foreach (var word in splitted)
+        //    {
+        //        var cleanWord = word.Replace(",", String.Empty).Replace(".", String.Empty).Replace("\n", String.Empty);
+        //        if (!wordFreqPairs.ContainsKey(cleanWord))
+        //        {
+        //            wordFreqPairs.Add(cleanWord, 1);
+        //        }
+        //        else
+        //        {
+        //            wordFreqPairs[cleanWord]++;
+        //        }
+        //    }
 
-            return wordFreqPairs;
-        }
+        //    return wordFreqPairs;
+        //}
     }
 }

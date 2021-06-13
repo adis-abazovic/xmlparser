@@ -3,9 +3,9 @@
     public class DbWordDuplicate
     {
         public int Id { get; set; }
-        public string Text { get; set; }
+        public string Word { get; set; }
         public int Frequency { get; set; }
 
-        public DbElement DbElement { get; set; }
+        public DbXmlElement DbElement { get; set; }
     }
 }

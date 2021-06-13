@@ -3,8 +3,8 @@ using XmlParser.Data.Models;
 
 namespace XmlParser.Data.Repositories
 {
-    public interface IDbDocumentRepository : IRepository<DbDocument>
+    public interface IDbDocumentRepository : IRepository<DbXmlDocument>
     {
-        Task<DbDocument> GetDocumentByClientAsync(string clientId);
+        Task<DbXmlDocument> GetDocumentByClientAsync(string clientId);
     }
 }
