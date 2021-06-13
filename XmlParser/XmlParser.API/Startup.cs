@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using XmlParser.Data.Models;
 using XmlParser.Data.Repositories;
+using XmlParser.Services.Notifications;
 using XmlParser.Services.Services;
 
 namespace XmlParser.API
@@ -40,6 +41,7 @@ namespace XmlParser.API
             services.AddTransient<IXmlService, XmlService>();
 
             services.AddControllers();
+            services.AddSignalR();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "XmlParser.API", Version = "v1" });
@@ -67,6 +69,8 @@ namespace XmlParser.API
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+                endpoints.MapHub<NotificationHub>("/notificationHub");
             });
         }
     }

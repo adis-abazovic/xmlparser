@@ -7,16 +7,21 @@ using XmlParser.Data.Models;
 using XmlParser.Data.Repositories;
 using XmlParser.Services.Models;
 using System.Linq;
+using Microsoft.AspNetCore.SignalR;
+using XmlParser.Services.Notifications;
 
 namespace XmlParser.Services.Services
 {
     public class XmlService : IXmlService
     {
         private readonly IDbDocumentRepository _dbDocumentRepository;
+        private readonly IHubContext<NotificationHub> _hubContext;
+        private string _clientId;
 
-        public XmlService(IDbDocumentRepository dbDocumentRepository)
+        public XmlService(IDbDocumentRepository dbDocumentRepository, IHubContext<NotificationHub> hubContext)
         {
             _dbDocumentRepository = dbDocumentRepository;
+            _hubContext = hubContext;
         }
 
         public async Task<List<Element>> Process(Stream xmlStream, string fileName, string clientId, List<string> filterElements)
@@ -29,7 +34,13 @@ namespace XmlParser.Services.Services
                 Elements = new List<DbXmlElement>()
             };
 
+            _clientId = clientId;
+
+            
             var parsedXml = await this.ParseXml(xmlStream, filterElements);
+          
+
+            await _hubContext.Clients.All.SendAsync(clientId, $"\t Searching for word duplicates - Started");
             foreach (var elem in parsedXml)
             {
                 var newDbElement = new DbXmlElement()
@@ -38,8 +49,6 @@ namespace XmlParser.Services.Services
                     Content = elem.Value.ValuesJoined,
                     WordDuplicates = new List<DbWordDuplicate>()
                 };
-
-                //var wordDuplicates = elem.Value.FindWordDuplicates();
 
                 foreach (var wordPair in elem.Value.WordDuplicates)
                 {
@@ -57,13 +66,18 @@ namespace XmlParser.Services.Services
                 newDbDocument.Elements.Add(newDbElement);
             }
 
+            await _hubContext.Clients.All.SendAsync(clientId, $"\t Searching for word duplicates - Done\n");
+
+            await _hubContext.Clients.All.SendAsync(clientId, $"\t Saving into database - Started");
             await _dbDocumentRepository.AddAsync(newDbDocument);
+            await _hubContext.Clients.All.SendAsync(clientId, $"\t Saving into database - Done\n");
 
             return parsedXml.Values.ToList();
         }
 
         private async Task<Dictionary<string, Element>> ParseXml(Stream xmlStream, List<string> filterElements)
         {
+            await _hubContext.Clients.All.SendAsync(_clientId, $"\t Parsing XML - Started");
             var elemValuePairs = new Dictionary<string, Element>();
             using (var xmlReader = XmlReader.Create(xmlStream, new XmlReaderSettings() { DtdProcessing = DtdProcessing.Parse, Async = true}))
             {
@@ -97,6 +111,8 @@ namespace XmlParser.Services.Services
                                     elementModel.Frequency++;
                                     elementModel.Values.Add(prevElementValue);
                                 }
+
+                                await _hubContext.Clients.All.SendAsync(_clientId, $"\t\t {xmlReader.Name} : {prevElementValue}");
                             }
                         }
                         else if (xmlReader.NodeType == XmlNodeType.Text && !String.IsNullOrEmpty(await xmlReader.GetValueAsync()))
@@ -106,28 +122,9 @@ namespace XmlParser.Services.Services
                     }
                 }
             }
+
+            await _hubContext.Clients.All.SendAsync(_clientId, $"\t Parsing XML - Done\n");
             return elemValuePairs;
         }
-
-        //private Dictionary<string, int> FindWordDuplicates(string content)
-        //{
-        //    var wordFreqPairs = new Dictionary<string, int>();
-
-        //    var splitted = content.Split(new char[] { ' ', '\n' }, StringSplitOptions.TrimEntries);
-        //    foreach (var word in splitted)
-        //    {
-        //        var cleanWord = word.Replace(",", String.Empty).Replace(".", String.Empty).Replace("\n", String.Empty);
-        //        if (!wordFreqPairs.ContainsKey(cleanWord))
-        //        {
-        //            wordFreqPairs.Add(cleanWord, 1);
-        //        }
-        //        else
-        //        {
-        //            wordFreqPairs[cleanWord]++;
-        //        }
-        //    }
-
-        //    return wordFreqPairs;
-        //}
     }
 }

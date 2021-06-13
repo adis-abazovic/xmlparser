@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -17,6 +18,8 @@ namespace XmlParser.Client
         {
             var filterElements = new List<string>();
             string filePath = String.Empty;
+            var clientId = Guid.NewGuid().ToString();
+
             if (args.Length > 1)
             {
                 filePath = args[0];
@@ -52,7 +55,7 @@ namespace XmlParser.Client
                 try
                 {
                     var myService = services.GetRequiredService<IXmlParserService>();
-                    Console.WriteLine($"\nProcessing finished:\n {myService.ProcessXML(args[0], String.Join(';', filterElements)).Result}");
+                    Console.WriteLine($"\nProcessing finished!\n {myService.ProcessXML(args[0], clientId, String.Join(';', filterElements)).Result}");
                     Console.WriteLine("*********************************************\n");
                 }
                 catch (Exception ex)
@@ -67,55 +70,67 @@ namespace XmlParser.Client
             host.RunAsync();
         }
 
-    public interface IXmlParserService
-    {
-        Task<string> ProcessXML(string xmlFilePath, string filterElements);
-    }
-
-    // Need this in order to use  IHttpClientFactory in a console app
-    public class XmlParserService : IXmlParserService
-    {
-        private readonly IHttpClientFactory _clientFactory;
-        public XmlParserService(IHttpClientFactory clientFactory)
+        public interface IXmlParserService
         {
-            _clientFactory = clientFactory;
+            Task<string> ProcessXML(string xmlFilePath, string clientId, string filterElements);
         }
-        public async Task<string> ProcessXML(string xmlFilePath, string filterElements)
+
+        // Need this in order to use  IHttpClientFactory in a console app
+        public class XmlParserService : IXmlParserService
         {
-            var fileName = System.IO.Path.GetFileName(xmlFilePath);
-            var requestUri = $"https://localhost:44394/XmlProcessor/process?fileName={fileName}&filterElements={filterElements}";
-            var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
-
-            StreamReader stream = null;
-            try
+            private readonly IHttpClientFactory _clientFactory;
+            public XmlParserService(IHttpClientFactory clientFactory)
             {
-                stream = new StreamReader(xmlFilePath);
+                _clientFactory = clientFactory;
+            }
+            public async Task<string> ProcessXML(string xmlFilePath, string clientId, string filterElements)
+            {
+                var connection = new HubConnectionBuilder()
+                    .WithUrl("https://localhost:44394/notificationHub")
+                    .Build();
 
-                request.Content = new StreamContent(stream.BaseStream);
-                request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-
-                var client = _clientFactory.CreateClient();
-                var response = await client.SendAsync(request);
-
-                if (response.IsSuccessStatusCode)
-                { 
-                    return await response.Content.ReadAsStringAsync(); ;
-                }
-                else
+                connection.On<string>(clientId, (message) =>
                 {
-                    return $"StatusCode: {response.StatusCode}";
+                    Console.WriteLine($"{message}");
+                });
+
+                await connection.StartAsync();
+
+                var fileName = System.IO.Path.GetFileName(xmlFilePath);
+                var requestUri = $"https://localhost:44394/XmlProcessor/process?fileName={fileName}&clientId={clientId}&filterElements={filterElements}";
+                var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
+
+                StreamReader stream = null;
+                try
+                {
+                    stream = new StreamReader(xmlFilePath);
+
+                    request.Content = new StreamContent(stream.BaseStream);
+                    request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+
+                    var client = _clientFactory.CreateClient();
+                    var response = await client.SendAsync(request);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return await response.Content.ReadAsStringAsync(); ;
+                    }
+                    else
+                    {
+                        return $"StatusCode: {response.StatusCode}";
+                    }
                 }
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-            finally
-            {
-                stream.Dispose();
-            }
+                catch (Exception)
+                {
+                    throw;
+                }
+                finally
+                {
+                    stream.Dispose();
+                    await connection.DisposeAsync();
+                }
             
+            }
         }
     }
-}
 }
