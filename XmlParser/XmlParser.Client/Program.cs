@@ -1,13 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace XmlParser.Client
@@ -16,7 +14,6 @@ namespace XmlParser.Client
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("START");
             var filterElements = new List<string>();
             string filePath = String.Empty;
             if (args.Length > 0)
@@ -27,12 +24,13 @@ namespace XmlParser.Client
                 {
                     for (int i = 1; i < args.Length; i++)
                     {
-                        filterElements.Add(args[0]);
+                        filterElements.Add(args[i]);
                     }
                 }
             }
 
-            // Need this in order to use  IHttpClientFactory in a console app
+            Console.WriteLine($"Processing: ${args[0]} Filter Elements: {String.Join(';', filterElements)}");
+
             var builder = new HostBuilder()
                 .ConfigureServices((hostContext, services) =>
                 {
