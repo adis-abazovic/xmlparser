@@ -32,6 +32,6 @@
 
 ### ToDo:
  - Dockerize projects and use SQL Server Docker image
- - Exception handling
- - Unit test for server and API endpoint
+ - Robust exception handling
+ - Unit tests for server and API endpoint
  - Etc.
