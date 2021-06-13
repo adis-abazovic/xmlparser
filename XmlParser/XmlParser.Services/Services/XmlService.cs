@@ -26,6 +26,7 @@ namespace XmlParser.Services.Services
 
         public async Task<List<Element>> Process(Stream xmlStream, string fileName, string clientId, List<string> filterElements)
         {
+            _clientId = clientId;
             var newDbDocument = new DbXmlDocument()
             {
                 ClientID = clientId,
@@ -34,11 +35,7 @@ namespace XmlParser.Services.Services
                 Elements = new List<DbXmlElement>()
             };
 
-            _clientId = clientId;
-
-            
             var parsedXml = await this.ParseXml(xmlStream, filterElements);
-          
 
             await _hubContext.Clients.All.SendAsync(clientId, $"\t Searching for word duplicates - Started");
             foreach (var elem in parsedXml)
@@ -66,11 +63,11 @@ namespace XmlParser.Services.Services
                 newDbDocument.Elements.Add(newDbElement);
             }
 
-            await _hubContext.Clients.All.SendAsync(clientId, $"\t Searching for word duplicates - Done\n");
+            await _hubContext.Clients.All.SendAsync(clientId, $"\t Searching for word duplicates - Finished\n");
 
             await _hubContext.Clients.All.SendAsync(clientId, $"\t Saving into database - Started");
             await _dbDocumentRepository.AddAsync(newDbDocument);
-            await _hubContext.Clients.All.SendAsync(clientId, $"\t Saving into database - Done\n");
+            await _hubContext.Clients.All.SendAsync(clientId, $"\t Saving into database - Finished\n");
 
             return parsedXml.Values.ToList();
         }
@@ -123,7 +120,7 @@ namespace XmlParser.Services.Services
                 }
             }
 
-            await _hubContext.Clients.All.SendAsync(_clientId, $"\t Parsing XML - Done\n");
+            await _hubContext.Clients.All.SendAsync(_clientId, $"\t Parsing XML - Finished\n");
             return elemValuePairs;
         }
     }

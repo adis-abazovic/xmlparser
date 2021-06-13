@@ -17,12 +17,10 @@ namespace XmlParser.API.Controllers
     public class XmlProcessorController : Controller
     {
         private readonly IXmlService _xmlService;
-        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public XmlProcessorController(IXmlService xmlService, IHubContext<NotificationHub> hubContext)
+        public XmlProcessorController(IXmlService xmlService)
         {
             _xmlService = xmlService;
-            _hubContext = hubContext;
         }
 
         [HttpPost]
