@@ -21,7 +21,7 @@
    
    Example: `dotnet run -- C:\Users\Adis\Desktop\XMLPlay\congree.xml p li`
        
-   ![image](https://user-images.githubusercontent.com/20841289/121815663-e16b1d00-cc77-11eb-92c3-1b6973b583e5.png)
+   > dotnet run -- C:\Users\Adis\Desktop\XMLPlay\congree.xml p li
 
 
 ### Notes
