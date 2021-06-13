@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,7 +22,6 @@ namespace XmlParser.Client
             if (args.Length > 1)
             {
                 filePath = args[0];
-
                 if (args.Length > 1)
                 {
                     for (int i = 1; i < args.Length; i++)
@@ -83,6 +81,7 @@ namespace XmlParser.Client
             {
                 _clientFactory = clientFactory;
             }
+
             public async Task<string> ProcessXML(string xmlFilePath, string clientId, string filterElements)
             {
                 var connection = new HubConnectionBuilder()
