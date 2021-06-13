@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,7 +17,7 @@ namespace XmlParser.Client
         {
             var filterElements = new List<string>();
             string filePath = String.Empty;
-            if (args.Length > 0)
+            if (args.Length > 1)
             {
                 filePath = args[0];
 
@@ -27,9 +28,13 @@ namespace XmlParser.Client
                         filterElements.Add(args[i]);
                     }
                 }
+            } else
+            {
+                Console.WriteLine(@"Please provide file path and filter elements arguments (Ex. dotnet run -- C:\Users\Adis\Desktop\XMLPlay\congree.xml p li)\n");
+                return;
             }
 
-            Console.WriteLine($"Processing: ${args[0]} Filter Elements: {String.Join(';', filterElements)}");
+            Console.WriteLine($"\nProcessing: ${args[0]} Filter Elements: {String.Join(';', filterElements)}");
 
             var builder = new HostBuilder()
                 .ConfigureServices((hostContext, services) =>
@@ -47,7 +52,8 @@ namespace XmlParser.Client
                 try
                 {
                     var myService = services.GetRequiredService<IXmlParserService>();
-                    Console.WriteLine(myService.ProcessXML(args[0], String.Join(';', filterElements)).Result);
+                    Console.WriteLine($"\nProcessing finished:\n {myService.ProcessXML(args[0], String.Join(';', filterElements)).Result}");
+                    Console.WriteLine("*********************************************\n");
                 }
                 catch (Exception ex)
                 {
@@ -77,7 +83,7 @@ namespace XmlParser.Client
         public async Task<string> ProcessXML(string xmlFilePath, string filterElements)
         {
             var fileName = System.IO.Path.GetFileName(xmlFilePath);
-            var requestUri = $"https://localhost:44394/XmlProcessor?fileName={fileName}&filterElements={filterElements}";
+            var requestUri = $"https://localhost:44394/XmlProcessor/process?fileName={fileName}&filterElements={filterElements}";
             var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
 
             StreamReader stream = null;
@@ -92,8 +98,8 @@ namespace XmlParser.Client
                 var response = await client.SendAsync(request);
 
                 if (response.IsSuccessStatusCode)
-                {
-                    return await response.Content.ReadAsStringAsync();
+                { 
+                    return await response.Content.ReadAsStringAsync(); ;
                 }
                 else
                 {
