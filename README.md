@@ -9,7 +9,6 @@
 ### 1. Running the API/Server
 1. Open the solution **XmlParser.sln** with Visual Studio 2019
 2. Set startup projects to option **"Single Startup Project"** and choose **"XmlParser.API"**
-![image](https://user-images.githubusercontent.com/20841289/121815313-170f0680-cc76-11eb-8ae7-a12c46869992.png)
 3. Rebuild the solution
 4. Run the project/Start Debugging (F5)
 
