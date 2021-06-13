@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "XmlParser.Client": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\Users\\Adis\\Desktop\\XMLPlay\\congree.xml"
+    }
+  }
+}
