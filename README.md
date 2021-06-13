@@ -29,9 +29,3 @@
   If you want to use SQL Server Database (MSSQLLocalDb) just un-comment the [following line](https://github.com/adis-abazovic/xmlparser/blob/30fa54dca5ee09d12d92044a5c80186cd6eaa866/XmlParser/XmlParser.API/Startup.cs#L34 ) in Startup.cs
   (and comment out the line that uses InMemoryDatabase)
   - SignalR is used for sending notification from server to the client about the progress of an operation
-
-### ToDo:
- - Dockerize projects and use SQL Server Docker image
- - Robust exception handling
- - Unit tests for server and API endpoint
- - Etc.
